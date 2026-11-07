@@ -15,6 +15,7 @@ import org.bukkit.Material;
 import org.bukkit.entity.EntityType;
 import org.bukkit.event.Listener;
 import org.bukkit.inventory.ItemStack;
+import org.bukkit.persistence.PersistentDataType;
 import org.bukkit.plugin.java.JavaPlugin;
 import org.jspecify.annotations.NonNull;
 
@@ -29,6 +30,7 @@ public class ElectricSpawnersV2 extends JavaPlugin implements Listener, Slimefun
         String HEAD_TEXTURE = "db6bd9727abb55d5415265789d4f2984781a343c68dcaf57f554a5e9aa1cd";
         ItemGroup itemGroup = new ItemGroup(new NamespacedKey(this, "electric_spawners"), CustomItemStack.create(SlimefunUtils.getCustomHead(HEAD_TEXTURE), "&9Electric Spawners"));
         Research research = new Research(new NamespacedKey(this, "electric_spawners"), 4820, "Powered Spawners", 30);
+        org.bukkit.NamespacedKey textureKey = new org.bukkit.NamespacedKey(this, "electric_spawner");
 
         for (String mob : cfg.getStringList("mobs")) {
             try {
@@ -41,8 +43,15 @@ public class ElectricSpawnersV2 extends JavaPlugin implements Listener, Slimefun
                     SlimefunItems.BLISTERING_INGOT_3.item(), SlimefunItems.LARGE_CAPACITOR.item(), SlimefunItems.BLISTERING_INGOT_3.item()
                 };
 
-                ItemStack spawnerItemStack = SlimefunUtils.getCustomHead("db6bd9727abb55d5415265789d4f2984781a343c68dcaf57f554a5e9aa1cd");
-                SlimefunItemStack itemStack = new SlimefunItemStack("ELECTRIC_SPAWNER_%S".formatted(mob), spawnerItemStack);
+                SlimefunItemStack itemStack = new SlimefunItemStack(
+                    "ELECTRIC_SPAWNER_%S".formatted(mob),
+                    SlimefunUtils.getCustomHead("db6bd9727abb55d5415265789d4f2984781a343c68dcaf57f554a5e9aa1cd")
+                );
+//                SlimefunItemStack itemStack = new SlimefunItemStack(
+//                    "ELECTRIC_SPAWNER_%S".formatted(mob),
+//                    Material.TINTED_GLASS
+//                );
+//                itemStack.editMeta(meta -> meta.getPersistentDataContainer().set(textureKey, PersistentDataType.STRING, "true"));
                 new ElectricSpawner(itemGroup, itemStack, recipe, type, research, 240, 512).register(this);
             }
             catch (IllegalArgumentException x) {
