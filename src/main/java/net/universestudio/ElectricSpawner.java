@@ -30,7 +30,6 @@ public class ElectricSpawner extends SimpleSlimefunItem<BlockTicker> implements 
 
     private final int energyConsumption;
     private final int capacity;
-    private static int lifetime = 0;
 
     private final EntityType entity;
 
@@ -39,8 +38,8 @@ public class ElectricSpawner extends SimpleSlimefunItem<BlockTicker> implements 
 
         this.energyConsumption = energyConsumption;
         this.capacity = capacity;
-
         this.entity = type;
+
         addItemHandler(onBlockPlace());
         new BlockMenuPreset(getId(), this.getItemName()) {
             @Override
@@ -65,7 +64,7 @@ public class ElectricSpawner extends SimpleSlimefunItem<BlockTicker> implements 
                 }
                 else {
                     menu.replaceExistingItem(4, CustomItemStack.create(Material.REDSTONE, "&7Enabled: &2\u2714", "", "&e> Click to disable this Machine"));
-                    menu.addMenuClickHandler(4, (p, slot, item, action) -> {
+                    menu.addMenuClickHandler(4, (_, _, _, _) -> {
                         BlockStorage.addBlockInfo(b, "enabled", "false");
                         newInstance(menu, b);
                         return false;
@@ -103,32 +102,42 @@ public class ElectricSpawner extends SimpleSlimefunItem<BlockTicker> implements 
         return this.energyConsumption;
     }
 
-    protected void tick(Block b) {
-        if (lifetime % 3 != 0) {
+    protected void tick(Block block) {
+        Location location = block.getLocation();
+
+        // Players can turn on or off their electric spawner
+        if (!"true".equals(BlockStorage.getLocationInfo(location, "enabled"))) return;
+
+        String raw = BlockStorage.getLocationInfo(location, "cooldown");
+        int cooldown = raw == null ? 0 : Integer.parseInt(raw);
+        if (cooldown > 0) {
+            BlockStorage.addBlockInfo(location, "cooldown", String.valueOf(cooldown - 1), false);
             return;
         }
 
-        if (BlockStorage.getLocationInfo(b.getLocation(), "enabled").equals("false")) {
-            return;
-        }
+        if (getCharge(location) < getEnergyConsumption()) return;
 
-        if (getCharge(b.getLocation()) < getEnergyConsumption()) {
-            return;
-        }
+        // Check spawned entities around the spawner (similar to the vanilla behavior)
+        int entityCap = ElectricSpawnersV2.getMaxEntityCap();
+        if (entityCap > 0) {
+            int count = 0;
+            for (Entity n : block.getWorld().getNearbyEntities(location, 4.0, 4.0, 4.0)) {
+                if (n.getType().equals(this.entity)) {
+                    count++;
 
-        int count = 0;
-        for (Entity n : b.getWorld().getNearbyEntities(b.getLocation(), 4.0, 4.0, 4.0)) {
-            if (n.getType().equals(this.entity)) {
-                count++;
-
-                if (count > 6) {
-                    return;
+                    if (count >= entityCap) {
+                        return;
+                    }
                 }
             }
         }
 
-        removeCharge(b.getLocation(), getEnergyConsumption());
-        b.getWorld().spawnEntity(new Location(b.getWorld(), b.getX() + 0.5D, b.getY() + 1.5D, b.getZ() + 0.5D), this.entity);
+        // Spawn entity
+        removeCharge(location, getEnergyConsumption());
+        block.getWorld().spawnEntity(new Location(block.getWorld(), block.getX() + 0.5D, block.getY() + 1.5D, block.getZ() + 0.5D), this.entity);
+
+        // Reset spawn interval
+        BlockStorage.addBlockInfo(block, "cooldown", String.valueOf(ElectricSpawnersV2.getSpawnInterval() * 2 - 1), false);
     }
 
     @Override
@@ -138,11 +147,6 @@ public class ElectricSpawner extends SimpleSlimefunItem<BlockTicker> implements 
             @Override
             public void tick(Block b, SlimefunItem sf, Config data) {
                 ElectricSpawner.this.tick(b);
-            }
-
-            @Override
-            public void uniqueTick() {
-                lifetime++;
             }
 
             @Override

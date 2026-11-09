@@ -1,3 +1,11 @@
+spawner-settings:
+  # Time in seconds between each spawn
+  spawnInterval: 5
+
+  # Maximum number of entities of the same type surrounding the spawner
+  # If this limit is reached, spawning will be paused
+  maxEntityCap: 6
+
 mobs:
   - ALLAY
   - ARMADILLO

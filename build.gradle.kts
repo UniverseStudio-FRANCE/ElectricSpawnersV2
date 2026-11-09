@@ -5,7 +5,7 @@ plugins {
 }
 
 group = "net.universestudio"
-version = "1.0.0"
+version = "1.1.0"
 description = "Electric Spawners v2 Addon"
 
 repositories {
