@@ -20,4 +20,4 @@ Click the badge down below to join the server for suggestions/questions or other
 </p>
 
 ## Open Source
-This Project is open-source and licensed under the [MIT License](https://github.com/TheBusyBiscuit/ElectricSpawners/blob/master/LICENSE)
+This Project is open-source and licensed under the [GPL-3.0 License](https://github.com/UniverseStudio-FRANCE/ElectricSpawnersV2/blob/master/LICENSE)
